@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  walletAddress String          @unique
+  username      String?
+  avatarUrl     String?
+  bio           String?
+  role          String          @default("user") // user, curator, verified
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  squares       Square[]        @relation("UserSquares")
+  posts         Post[]          @relation("UserPosts")
+  transactions  Transaction[]   @relation("UserTransactions")
+  sessions      WalletSession[] @relation("UserSessions")
+  activityLogs  ActivityLog[]   @relation("UserActivities")
+
+  @@index([walletAddress])
+}
+
+model Square {
+  id              Int           @id // 0 to 255 (256 squares total)
+  row             Int           // 0 to 15
+  col             Int           // 0 to 15
+  ownerAddress    String
+  owner           User?         @relation("UserSquares", fields: [ownerAddress], references: [walletAddress])
+  
+  // Harberger Valuation & Tax
+  currentPriceEth String        @default("0.05") // in ETH (stored as string for precise BigInt/Decimal representation)
+  depositEth      String        @default("0.01") // tax deposit balance
+  dailyCarryRate  Float         @default(0.01)   // 1% daily carry tax
+  isForSale       Boolean       @default(true)
+  isLeased        Boolean       @default(false)
+  leaseExpiry     DateTime?
+  leasedByAddress String?
+
+  // Content / Creative
+  headline        String?
+  bodyText        String?
+  linkUrl         String?
+  imageUrl        String?
+  category        String?       @default("General") // DeFi, NFT, Tooling, Alpha, Sponsor
+  accentColor     String?       @default("#00E599")
+  
+  lastPurchasedAt DateTime?     @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  posts           Post[]        @relation("SquarePosts")
+  transactions    Transaction[] @relation("SquareTransactions")
+  activityLogs    ActivityLog[] @relation("SquareActivities")
+
+  @@index([ownerAddress])
+  @@index([isForSale])
+  @@index([category])
+}
+
+model Post {
+  id              String        @id @default(uuid())
+  squareId        Int?
+  square          Square?       @relation("SquarePosts", fields: [squareId], references: [id])
+  authorAddress   String
+  author          User          @relation("UserPosts", fields: [authorAddress], references: [walletAddress])
+  
+  title           String
+  content         String
+  category        String        @default("General")
+  linkUrl         String?
+  mediaUrl        String?
+  
+  // Web3 Verification
+  blockchainTxHash String?      @unique
+  chainId         Int           @default(4663)
+  status          String        @default("CONFIRMED") // PENDING, CONFIRMING, CONFIRMED, FAILED
+  likesCount      Int           @default(0)
+  viewsCount      Int           @default(0)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([authorAddress])
+  @@index([squareId])
+  @@index([status])
+}
+
+model Transaction {
+  id              String        @id @default(uuid())
+  txHash          String        @unique
+  userAddress     String
+  user            User          @relation("UserTransactions", fields: [userAddress], references: [walletAddress])
+  squareId        Int?
+  square          Square?       @relation("SquareTransactions", fields: [squareId], references: [id])
+  
+  txType          String        // BUY_SQUARE, UPDATE_PRICE, DEPOSIT_TAX, WITHDRAW_TAX, PUBLISH_POST, LEASE_SQUARE
+  amountEth       String?
+  chainId         Int           @default(4663)
+  status          String        @default("CONFIRMED") // PENDING, CONFIRMING, CONFIRMED, FAILED
+  blockNumber     Int?
+  gasUsed         String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userAddress])
+  @@index([squareId])
+  @@index([txType])
+}
+
+model WalletSession {
+  id            String    @id @default(uuid())
+  walletAddress String
+  user          User      @relation("UserSessions", fields: [walletAddress], references: [walletAddress])
+  nonce         String
+  issuedAt      DateTime  @default(now())
+  expiresAt     DateTime
+  lastActiveAt  DateTime  @default(now())
+  userAgent     String?
+
+  @@index([walletAddress])
+  @@index([nonce])
+}
+
+model ActivityLog {
+  id            String    @id @default(uuid())
+  userAddress   String
+  user          User      @relation("UserActivities", fields: [userAddress], references: [walletAddress])
+  squareId      Int?
+  square        Square?   @relation("SquareActivities", fields: [squareId], references: [id])
+  
+  action        String    // "BOUGHT_SQUARE", "POSTED_UPDATE", "CHANGED_PRICE", "DEPOSITED_CARRY", "LEASED_SLOT"
+  description   String
+  metadata      String?   // JSON string
+  txHash        String?
+  createdAt     DateTime  @default(now())
+
+  @@index([userAddress])
+  @@index([squareId])
+  @@index([action])
+}
