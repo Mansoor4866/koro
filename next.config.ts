@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
       net: false,
       tls: false,
       crypto: false,
+      "@react-native-async-storage/async-storage": false,
+    };
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@react-native-async-storage/async-storage": false,
     };
     return config;
   },
