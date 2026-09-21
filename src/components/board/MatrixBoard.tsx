@@ -122,7 +122,7 @@ export function MatrixBoard({ squares, onSelectSquare, selectedSquareId, isLoadi
           style={{ transform: `scale(${zoomLevel})`, transformOrigin: "top center" }}
           className="transition-transform duration-200"
         >
-          <div className="p-4 rounded-2xl glass-panel border border-slate-300 dark:border-[#00E599]/20 bg-slate-200/80 dark:bg-[#090D14] shadow-xl relative">
+          <div className="p-4 rounded-2xl glass-panel border border-slate-300 dark:border-[#00E599]/20 bg-slate-100 dark:bg-[#090D14] shadow-xl relative">
             {/* Grid 16x16 = 256 slots */}
             <div className="grid grid-cols-16 gap-1.5 w-[840px] md:w-[980px] select-none">
               {Array.from({ length: 256 }).map((_, idx) => {
@@ -174,7 +174,7 @@ export function MatrixBoard({ squares, onSelectSquare, selectedSquareId, isLoadi
                   >
                     {/* Top Row: Slot ID + Sale Indicator */}
                     <div className="flex items-center justify-between text-[9px] font-mono leading-none">
-                      <span className="font-bold text-slate-600 dark:text-gray-400">#{sq.id}</span>
+                      <span className="font-extrabold text-slate-700 dark:text-gray-400">#{sq.id}</span>
                       {sq.isForSale && (
                         <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse" />
                       )}
@@ -182,13 +182,13 @@ export function MatrixBoard({ squares, onSelectSquare, selectedSquareId, isLoadi
 
                     {/* Center: Accent dot or mini icon */}
                     <div className="flex-1 flex flex-col items-center justify-center my-0.5">
-                      <span className="text-[10px] font-bold text-slate-800 dark:text-gray-200 truncate w-full text-center leading-tight">
+                      <span className="text-[10px] font-extrabold text-slate-900 dark:text-white truncate w-full text-center leading-tight">
                         {sq.headline ? sq.headline.slice(0, 8) : `S#${sq.id}`}
                       </span>
                     </div>
 
                     {/* Bottom: Price in ETH */}
-                    <div className="text-[8.5px] font-mono text-center text-[#059669] dark:text-[#00E599] bg-slate-100 dark:bg-black/40 rounded px-1 py-0.5 truncate leading-none font-bold">
+                    <div className="text-[8.5px] font-mono text-center text-emerald-800 dark:text-[#00E599] bg-emerald-100/70 dark:bg-black/40 border border-emerald-200/50 dark:border-transparent rounded px-1 py-0.5 truncate leading-none font-extrabold">
                       {formatEth(sq.currentPriceEth, 2)}Ξ
                     </div>
                   </div>
